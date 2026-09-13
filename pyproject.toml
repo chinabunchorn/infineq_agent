@@ -33,6 +33,15 @@ packages = ["src/infineq"]
 addopts = "-ra --strict-config --strict-markers"
 testpaths = ["tests"]
 
+[tool.coverage.run]
+branch = false
+source = ["infineq"]
+
+[tool.coverage.report]
+fail_under = 90
+skip_covered = true
+show_missing = true
+
 [tool.ruff]
 target-version = "py313"
 line-length = 100

@@ -49,7 +49,7 @@ class ModelSmokeResult:
         """Return the only fields safe for console output."""
 
         return {
-            "success": True,
+            "success": self.exact_match,
             "deployment_name": self.deployment_name,
             "response_id": self.response_id,
             "latency_ms": self.latency_ms,

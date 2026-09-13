@@ -120,6 +120,32 @@ def test_investigation_requires_grounded_diagnosis_and_blocks_action_on_abstenti
         )
 
 
+def test_diagnosed_action_requires_supporting_and_cited_evidence() -> None:
+    hypothesis = Hypothesis(
+        hypothesis_id="hyp-queue-aa12",
+        family=IncidentFamily.CAPACITY_QUEUEING,
+        rank=1,
+        evidence_coverage=EvidenceCoverage.COMPLETE,
+        statement="Queue pressure is the leading likely cause.",
+        supporting_evidence_ids=(),
+        contradicting_evidence_ids=(),
+        missing_evidence=(),
+    )
+
+    with pytest.raises(ValidationError):
+        InvestigationResultV1(
+            investigation_id="investigation-aa12",
+            incident_id=INCIDENT_ID,
+            completed_at=NOW,
+            disposition=Disposition.DIAGNOSED,
+            summary="Unsupported diagnosis.",
+            hypotheses=(hypothesis,),
+            leading_hypothesis_id=hypothesis.hypothesis_id,
+            proposed_action=make_action(),
+            cited_evidence_ids=(),
+        )
+
+
 def test_verification_and_recovery_cannot_report_success_when_a_check_failed() -> None:
     with pytest.raises(ValidationError):
         VerificationResultV1(
@@ -161,4 +187,65 @@ def test_verification_and_recovery_cannot_report_success_when_a_check_failed() -
             ),
             evidence_ids=(EVIDENCE_ID,),
             summary="Recovery was not observed.",
+        )
+
+
+def test_verified_recovery_requires_measured_evidence() -> None:
+    with pytest.raises(ValidationError):
+        RecoveryResultV1(
+            incident_id=INCIDENT_ID,
+            action_plan_id="plan-aa12bb",
+            checked_at=NOW,
+            window=TimeWindow(start=NOW - timedelta(seconds=30), end=NOW),
+            state=RecoveryState.VERIFIED,
+            criteria=(
+                RecoveryCriterion(
+                    metric="ttft",
+                    operator=ComparisonOperator.LESS_THAN_OR_EQUAL,
+                    threshold=2_000.0,
+                    observed_value=None,
+                    unit="ms",
+                    passed=True,
+                    evidence_ids=(),
+                ),
+            ),
+            evidence_ids=(),
+            summary="Recovery claimed without measurement.",
+        )
+
+
+def test_verified_result_requires_at_least_one_supported_claim() -> None:
+    with pytest.raises(ValidationError):
+        VerificationResultV1(
+            verification_id="verification-aa12",
+            incident_id=INCIDENT_ID,
+            investigation_id="investigation-aa12",
+            checked_at=NOW,
+            status=VerificationStatus.VERIFIED,
+            claim_checks=(),
+            issues=(),
+            correction_requests=(),
+            policy_ref="policy-infineq-v1",
+        )
+
+
+def test_verified_claim_requires_cited_evidence() -> None:
+    with pytest.raises(ValidationError):
+        VerificationResultV1(
+            verification_id="verification-aa12",
+            incident_id=INCIDENT_ID,
+            investigation_id="investigation-aa12",
+            checked_at=NOW,
+            status=VerificationStatus.VERIFIED,
+            claim_checks=(
+                ClaimCheck(
+                    claim_id="claim-aa12",
+                    evidence_ids=(),
+                    supported=True,
+                    note="Claim marked supported without a citation.",
+                ),
+            ),
+            issues=(),
+            correction_requests=(),
+            policy_ref="policy-infineq-v1",
         )

@@ -143,6 +143,7 @@
       "items": {
         "$ref": "#/$defs/RecoveryCriterion"
       },
+      "maxItems": 10,
       "title": "Criteria",
       "type": "array"
     },

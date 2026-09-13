@@ -9,9 +9,11 @@ REDACTED = "[REDACTED]"
 
 _SENSITIVE_KEYS = frozenset(
     {
+        "access_token",
         "api_key",
         "apikey",
         "authorization",
+        "client_secret",
         "completion",
         "connection_string",
         "password",
@@ -19,17 +21,19 @@ _SENSITIVE_KEYS = frozenset(
         "secret",
         "tenant_id",
         "token",
+        "refresh_token",
     }
 )
 _QUOTED_VALUE = re.compile(
-    r"(?i)([\"']?(?:api[_-]?key|authorization|completion|connection[_-]?string|password|"
-    r"prompt|secret|tenant[_-]?id|token)[\"']?\s*[:=]\s*)([\"'])(.*?)(\2)"
+    r"(?i)([\"']?(?:access[_-]?token|api[_-]?key|authorization|client[_-]?secret|completion|"
+    r"connection[_-]?string|password|prompt|refresh[_-]?token|secret|tenant[_-]?id|token)"
+    r"[\"']?\s*[:=]\s*)([\"'])(.*?)(\2)"
 )
 _BEARER = re.compile(r"(?i)(\b(?:authorization\s*:\s*)?bearer\s+)[A-Za-z0-9._~+/=-]+")
 _ACCOUNT_KEY = re.compile(r"(?i)(\bAccountKey\s*=\s*)[^;\s]+")
 _UNQUOTED_VALUE = re.compile(
-    r"(?i)(\b(?:api[_-]?key|connection[_-]?string|password|secret|tenant[_-]?id|token)"
-    r"\s*=\s*)[^\s;,]+"
+    r"(?i)(\b(?:access[_-]?token|api[_-]?key|client[_-]?secret|connection[_-]?string|"
+    r"password|refresh[_-]?token|secret|tenant[_-]?id|token)\s*=\s*)[^\s;,]+"
 )
 _AZURE_SCOPE_ID = re.compile(
     r"(?i)(/(?:subscriptions|tenants)/)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-"

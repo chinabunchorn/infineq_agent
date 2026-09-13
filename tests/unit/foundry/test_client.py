@@ -43,6 +43,19 @@ def test_smoke_uses_a_protocol_and_returns_only_safe_metadata() -> None:
     assert "INFOUNDRY_READY" not in str(result.to_public_record())
 
 
+def test_smoke_marks_a_nonmatching_response_as_unsuccessful() -> None:
+    client = FakeResponder("I cannot follow that instruction.")
+
+    result = run_model_smoke(
+        client,
+        deployment_name="infineq-gpt-5-4-mini",
+        clock=sequence_clock(10.0, 10.1),
+    )
+
+    assert result.exact_match is False
+    assert result.to_public_record()["success"] is False
+
+
 def test_smoke_normalizes_an_empty_model_response() -> None:
     client = FakeResponder("  ")
 

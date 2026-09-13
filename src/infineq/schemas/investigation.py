@@ -92,6 +92,13 @@ class InvestigationResultV1(StrictModel):
         }
         if not used.issubset(cited):
             raise ValueError("hypothesis evidence must be listed as cited evidence")
+        if any(
+            self.disposition is Disposition.DIAGNOSED
+            and hypothesis.evidence_coverage is EvidenceCoverage.COMPLETE
+            and not hypothesis.supporting_evidence_ids
+            for hypothesis in self.hypotheses
+        ):
+            raise ValueError("complete hypotheses require supporting evidence")
 
         if self.disposition is Disposition.DIAGNOSED:
             if not self.hypotheses or self.leading_hypothesis_id not in ids:
@@ -99,8 +106,12 @@ class InvestigationResultV1(StrictModel):
             leading = next(
                 item for item in self.hypotheses if item.hypothesis_id == self.leading_hypothesis_id
             )
-            if self.proposed_action and leading.evidence_coverage is not EvidenceCoverage.COMPLETE:
-                raise ValueError("an action proposal requires complete leading evidence")
+            if self.proposed_action and (
+                leading.evidence_coverage is not EvidenceCoverage.COMPLETE
+                or not leading.supporting_evidence_ids
+                or not set(leading.supporting_evidence_ids).issubset(cited)
+            ):
+                raise ValueError("an action proposal requires complete, cited supporting evidence")
         elif self.leading_hypothesis_id is not None or self.proposed_action is not None:
             raise ValueError(
                 "non-diagnostic dispositions cannot select a cause or propose an action"

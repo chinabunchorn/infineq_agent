@@ -36,10 +36,17 @@ class VerificationResultV1(StrictModel):
     investigation_id: OpaqueId
     checked_at: AwareDatetime
     status: VerificationStatus
-    claim_checks: tuple[ClaimCheck, ...]
-    issues: tuple[str, ...]
-    correction_requests: tuple[str, ...]
+    claim_checks: Annotated[tuple[ClaimCheck, ...], Field(max_length=10)]
+    issues: Annotated[tuple[str, ...], Field(max_length=20)]
+    correction_requests: Annotated[tuple[str, ...], Field(max_length=20)]
     policy_ref: OpaqueId
+
+    @field_validator("issues", "correction_requests")
+    @classmethod
+    def reject_blank_messages(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        if any(not value.strip() for value in values):
+            raise ValueError("verification messages cannot be blank")
+        return values
 
     @field_validator("checked_at")
     @classmethod
@@ -49,6 +56,10 @@ class VerificationResultV1(StrictModel):
     @model_validator(mode="after")
     def success_requires_all_checks(self) -> "VerificationResultV1":
         if self.status is VerificationStatus.VERIFIED:
+            if not self.claim_checks:
+                raise ValueError("verified result requires at least one claim check")
+            if any(not check.evidence_ids for check in self.claim_checks):
+                raise ValueError("verified result requires cited evidence for every claim")
             if any(not check.supported for check in self.claim_checks):
                 raise ValueError("verified result cannot contain an unsupported claim")
             if self.issues or self.correction_requests:

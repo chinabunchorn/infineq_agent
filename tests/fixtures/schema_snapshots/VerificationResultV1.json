@@ -68,6 +68,7 @@
       "items": {
         "$ref": "#/$defs/ClaimCheck"
       },
+      "maxItems": 10,
       "title": "Claim Checks",
       "type": "array"
     },
@@ -75,6 +76,7 @@
       "items": {
         "type": "string"
       },
+      "maxItems": 20,
       "title": "Correction Requests",
       "type": "array"
     },
@@ -94,6 +96,7 @@
       "items": {
         "type": "string"
       },
+      "maxItems": 20,
       "title": "Issues",
       "type": "array"
     },

@@ -7,6 +7,9 @@ from infineq.security.redaction import REDACTED, redact_mapping, redact_text
     ("raw", "secret"),
     [
         ('api_key="sk-super-secret-value"', "sk-super-secret-value"),
+        ('client_secret="client-secret-value"', "client-secret-value"),
+        ('access_token="access-token-value"', "access-token-value"),
+        ('refresh_token="refresh-token-value"', "refresh-token-value"),
         ("Authorization: Bearer eyJhbGciOi.secret.signature", "eyJhbGciOi.secret.signature"),
         (
             "AccountName=demo;AccountKey=base64secret==;EndpointSuffix=core.windows.net",
@@ -43,3 +46,19 @@ def test_redact_mapping_handles_sensitive_keys_and_nested_values() -> None:
     assert "operator@example.com" not in redacted["message"]
     assert redacted["nested"]["prompt"] == REDACTED
     assert redacted["nested"]["status"] == "ok"
+
+
+def test_redact_mapping_handles_oauth_credential_keys() -> None:
+    raw = {
+        "client_secret": "client-secret-value",
+        "access_token": "access-token-value",
+        "refresh_token": "refresh-token-value",
+    }
+
+    redacted = redact_mapping(raw)
+
+    assert redacted == {
+        "client_secret": REDACTED,
+        "access_token": REDACTED,
+        "refresh_token": REDACTED,
+    }
