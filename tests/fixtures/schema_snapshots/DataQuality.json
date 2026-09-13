@@ -1,0 +1,52 @@
+{
+  "$defs": {
+    "DataQualityStatus": {
+      "description": "Whether evidence is usable for a diagnostic decision.",
+      "enum": [
+        "good",
+        "degraded",
+        "insufficient"
+      ],
+      "title": "DataQualityStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Data sufficiency and freshness evaluated before agent reasoning.",
+  "properties": {
+    "freshness_seconds": {
+      "minimum": 0,
+      "title": "Freshness Seconds",
+      "type": "number"
+    },
+    "issues": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "sample_count": {
+      "minimum": 0,
+      "title": "Sample Count",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/DataQualityStatus"
+    }
+  },
+  "required": [
+    "status",
+    "sample_count",
+    "freshness_seconds"
+  ],
+  "title": "DataQuality",
+  "type": "object"
+}

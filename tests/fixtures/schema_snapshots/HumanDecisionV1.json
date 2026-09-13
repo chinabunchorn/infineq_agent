@@ -1,0 +1,72 @@
+{
+  "$defs": {
+    "Decision": {
+      "description": "Human choices at the approval gate.",
+      "enum": [
+        "approve",
+        "reject",
+        "request_more_evidence"
+      ],
+      "title": "Decision",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Auditable human decision bound to an exact action-plan hash.",
+  "properties": {
+    "actor_label": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Actor Label",
+      "type": "string"
+    },
+    "decided_at": {
+      "format": "date-time",
+      "title": "Decided At",
+      "type": "string"
+    },
+    "decision": {
+      "$ref": "#/$defs/Decision"
+    },
+    "decision_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "incident_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "plan_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plan Hash",
+      "type": "string"
+    },
+    "plan_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "decision_id",
+    "plan_id",
+    "incident_id",
+    "plan_hash",
+    "decision",
+    "actor_label",
+    "decided_at"
+  ],
+  "title": "HumanDecisionV1",
+  "type": "object"
+}

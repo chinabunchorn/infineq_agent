@@ -1,0 +1,375 @@
+{
+  "$defs": {
+    "DataOrigin": {
+      "description": "Provenance categories visible to operators and evaluators.",
+      "enum": [
+        "synthetic_replay"
+      ],
+      "title": "DataOrigin",
+      "type": "string"
+    },
+    "DataQuality": {
+      "additionalProperties": false,
+      "description": "Data sufficiency and freshness evaluated before agent reasoning.",
+      "properties": {
+        "freshness_seconds": {
+          "minimum": 0,
+          "title": "Freshness Seconds",
+          "type": "number"
+        },
+        "issues": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "title": "Sample Count",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/DataQualityStatus"
+        }
+      },
+      "required": [
+        "status",
+        "sample_count",
+        "freshness_seconds"
+      ],
+      "title": "DataQuality",
+      "type": "object"
+    },
+    "DataQualityStatus": {
+      "description": "Whether evidence is usable for a diagnostic decision.",
+      "enum": [
+        "good",
+        "degraded",
+        "insufficient"
+      ],
+      "title": "DataQualityStatus",
+      "type": "string"
+    },
+    "DeploymentSnapshot": {
+      "additionalProperties": false,
+      "description": "Read-only serving deployment state at one replay instant.",
+      "properties": {
+        "evidence_ids": {
+          "items": {
+            "maxLength": 256,
+            "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "ready_replicas": {
+          "minimum": 0,
+          "title": "Ready Replicas",
+          "type": "integer"
+        },
+        "replicas": {
+          "minimum": 0,
+          "title": "Replicas",
+          "type": "integer"
+        },
+        "revision": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "replicas",
+        "ready_replicas",
+        "revision",
+        "observed_at",
+        "evidence_ids"
+      ],
+      "title": "DeploymentSnapshot",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "Immutable reference to one normalized item of observed evidence.",
+      "properties": {
+        "evidence_id": {
+          "maxLength": 256,
+          "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "incident_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/DataOrigin"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_]+$",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "incident_id",
+        "origin",
+        "source",
+        "observed_at"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "SLOStatus": {
+      "additionalProperties": false,
+      "description": "Measured status of one service-level objective.",
+      "properties": {
+        "evidence_ids": {
+          "items": {
+            "maxLength": 256,
+            "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "metric": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_]+$",
+          "title": "Metric",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "threshold": {
+          "title": "Threshold",
+          "type": "number"
+        },
+        "unit": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "violated": {
+          "title": "Violated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "metric",
+        "threshold",
+        "unit",
+        "violated",
+        "evidence_ids"
+      ],
+      "title": "SLOStatus",
+      "type": "object"
+    },
+    "SignalObservation": {
+      "additionalProperties": false,
+      "description": "A normalized aggregate with its evidence provenance.",
+      "properties": {
+        "aggregation": {
+          "maxLength": 32,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_]+$",
+          "title": "Aggregation",
+          "type": "string"
+        },
+        "evidence": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "signal": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_]+$",
+          "title": "Signal",
+          "type": "string"
+        },
+        "unit": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "window": {
+          "$ref": "#/$defs/TimeWindow"
+        }
+      },
+      "required": [
+        "signal",
+        "value",
+        "unit",
+        "aggregation",
+        "window",
+        "evidence"
+      ],
+      "title": "SignalObservation",
+      "type": "object"
+    },
+    "TimeWindow": {
+      "additionalProperties": false,
+      "description": "Half-open UTC interval: start inclusive, end exclusive.",
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "TimeWindow",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Agent input produced by deterministic detection code.",
+  "properties": {
+    "baseline_window": {
+      "$ref": "#/$defs/TimeWindow"
+    },
+    "data_quality": {
+      "$ref": "#/$defs/DataQuality"
+    },
+    "deployment": {
+      "$ref": "#/$defs/DeploymentSnapshot"
+    },
+    "detected_at": {
+      "format": "date-time",
+      "title": "Detected At",
+      "type": "string"
+    },
+    "detector_version": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Detector Version",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "$ref": "#/$defs/EvidenceRef"
+      },
+      "minItems": 1,
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "incident_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "observation_window": {
+      "$ref": "#/$defs/TimeWindow"
+    },
+    "origin": {
+      "$ref": "#/$defs/DataOrigin"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "service_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Service Id",
+      "type": "string"
+    },
+    "signals": {
+      "items": {
+        "$ref": "#/$defs/SignalObservation"
+      },
+      "minItems": 1,
+      "title": "Signals",
+      "type": "array"
+    },
+    "slo": {
+      "$ref": "#/$defs/SLOStatus"
+    }
+  },
+  "required": [
+    "incident_id",
+    "service_id",
+    "detected_at",
+    "origin",
+    "baseline_window",
+    "observation_window",
+    "slo",
+    "signals",
+    "deployment",
+    "data_quality",
+    "detector_version",
+    "evidence_refs"
+  ],
+  "title": "IncidentPacketV1",
+  "type": "object"
+}

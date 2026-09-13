@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Environments and local configuration
+.venv/
+.env
+.env.*
+!.env.example
+
+# IDE and macOS
+.DS_Store
+.vscode/
+.idea/
+
+# Local operational output
+data/**/runs/
+traces/
+logs/
+*.log
+
+# Optional downloaded public traces
+/data/external/

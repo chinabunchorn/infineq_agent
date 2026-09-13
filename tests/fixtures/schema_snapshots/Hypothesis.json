@@ -1,0 +1,112 @@
+{
+  "$defs": {
+    "EvidenceCoverage": {
+      "description": "Qualitative evidence sufficiency, never a fabricated probability.",
+      "enum": [
+        "complete",
+        "partial",
+        "insufficient"
+      ],
+      "title": "EvidenceCoverage",
+      "type": "string"
+    },
+    "IncidentFamily": {
+      "description": "Frozen diagnosis families visible to the agents.",
+      "enum": [
+        "healthy",
+        "capacity_queueing",
+        "backend_slowdown",
+        "backend_error",
+        "workload_shape_change",
+        "replica_or_deployment_regression",
+        "unknown"
+      ],
+      "title": "IncidentFamily",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One ranked explanation with support, contradiction, and unknowns.",
+  "properties": {
+    "contradicting_evidence_ids": {
+      "items": {
+        "maxLength": 256,
+        "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+        "type": "string"
+      },
+      "title": "Contradicting Evidence Ids",
+      "type": "array"
+    },
+    "evidence_coverage": {
+      "$ref": "#/$defs/EvidenceCoverage"
+    },
+    "family": {
+      "$ref": "#/$defs/IncidentFamily"
+    },
+    "hypothesis_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Hypothesis Id",
+      "type": "string"
+    },
+    "missing_evidence": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missing Evidence",
+      "type": "array"
+    },
+    "next_check": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Next Check"
+    },
+    "rank": {
+      "maximum": 3,
+      "minimum": 1,
+      "title": "Rank",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "statement": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Statement",
+      "type": "string"
+    },
+    "supporting_evidence_ids": {
+      "items": {
+        "maxLength": 256,
+        "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+        "type": "string"
+      },
+      "title": "Supporting Evidence Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "hypothesis_id",
+    "family",
+    "rank",
+    "evidence_coverage",
+    "statement",
+    "supporting_evidence_ids",
+    "contradicting_evidence_ids",
+    "missing_evidence"
+  ],
+  "title": "Hypothesis",
+  "type": "object"
+}

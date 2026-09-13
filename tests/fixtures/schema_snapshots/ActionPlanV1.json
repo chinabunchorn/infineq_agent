@@ -1,0 +1,141 @@
+{
+  "$defs": {
+    "ActionTarget": {
+      "additionalProperties": false,
+      "description": "A simulator target; real infrastructure targets are intentionally impossible.",
+      "properties": {
+        "kind": {
+          "const": "simulator",
+          "default": "simulator",
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "service_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+          "title": "Service Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_id"
+      ],
+      "title": "ActionTarget",
+      "type": "object"
+    },
+    "ActionType": {
+      "description": "The only v1 state-changing action.",
+      "enum": [
+        "simulated_scale_out"
+      ],
+      "title": "ActionType",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A bounded simulator action proposal, never an execution request.",
+  "properties": {
+    "action_type": {
+      "$ref": "#/$defs/ActionType"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "expected_effect": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Expected Effect",
+      "type": "string"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "from_replicas": {
+      "minimum": 0,
+      "title": "From Replicas",
+      "type": "integer"
+    },
+    "incident_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "plan_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "policy_ref": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Policy Ref",
+      "type": "string"
+    },
+    "requires_human_approval": {
+      "const": true,
+      "default": true,
+      "title": "Requires Human Approval",
+      "type": "boolean"
+    },
+    "risks": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10,
+      "minItems": 1,
+      "title": "Risks",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "target": {
+      "$ref": "#/$defs/ActionTarget"
+    },
+    "to_replicas": {
+      "minimum": 0,
+      "title": "To Replicas",
+      "type": "integer"
+    },
+    "verification_criteria": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10,
+      "minItems": 1,
+      "title": "Verification Criteria",
+      "type": "array"
+    }
+  },
+  "required": [
+    "plan_id",
+    "incident_id",
+    "action_type",
+    "target",
+    "from_replicas",
+    "to_replicas",
+    "created_at",
+    "expires_at",
+    "expected_effect",
+    "risks",
+    "verification_criteria",
+    "policy_ref"
+  ],
+  "title": "ActionPlanV1",
+  "type": "object"
+}

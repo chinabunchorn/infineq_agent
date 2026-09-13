@@ -1,0 +1,361 @@
+{
+  "$defs": {
+    "ActionPlanV1": {
+      "additionalProperties": false,
+      "description": "A bounded simulator action proposal, never an execution request.",
+      "properties": {
+        "action_type": {
+          "$ref": "#/$defs/ActionType"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "expected_effect": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Expected Effect",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "from_replicas": {
+          "minimum": 0,
+          "title": "From Replicas",
+          "type": "integer"
+        },
+        "incident_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "plan_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "policy_ref": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+          "title": "Policy Ref",
+          "type": "string"
+        },
+        "requires_human_approval": {
+          "const": true,
+          "default": true,
+          "title": "Requires Human Approval",
+          "type": "boolean"
+        },
+        "risks": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Risks",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/ActionTarget"
+        },
+        "to_replicas": {
+          "minimum": 0,
+          "title": "To Replicas",
+          "type": "integer"
+        },
+        "verification_criteria": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Verification Criteria",
+          "type": "array"
+        }
+      },
+      "required": [
+        "plan_id",
+        "incident_id",
+        "action_type",
+        "target",
+        "from_replicas",
+        "to_replicas",
+        "created_at",
+        "expires_at",
+        "expected_effect",
+        "risks",
+        "verification_criteria",
+        "policy_ref"
+      ],
+      "title": "ActionPlanV1",
+      "type": "object"
+    },
+    "ActionTarget": {
+      "additionalProperties": false,
+      "description": "A simulator target; real infrastructure targets are intentionally impossible.",
+      "properties": {
+        "kind": {
+          "const": "simulator",
+          "default": "simulator",
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "service_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+          "title": "Service Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_id"
+      ],
+      "title": "ActionTarget",
+      "type": "object"
+    },
+    "ActionType": {
+      "description": "The only v1 state-changing action.",
+      "enum": [
+        "simulated_scale_out"
+      ],
+      "title": "ActionType",
+      "type": "string"
+    },
+    "Disposition": {
+      "description": "Investigator completion state.",
+      "enum": [
+        "diagnosed",
+        "indeterminate",
+        "no_incident",
+        "analysis_incomplete"
+      ],
+      "title": "Disposition",
+      "type": "string"
+    },
+    "EvidenceCoverage": {
+      "description": "Qualitative evidence sufficiency, never a fabricated probability.",
+      "enum": [
+        "complete",
+        "partial",
+        "insufficient"
+      ],
+      "title": "EvidenceCoverage",
+      "type": "string"
+    },
+    "Hypothesis": {
+      "additionalProperties": false,
+      "description": "One ranked explanation with support, contradiction, and unknowns.",
+      "properties": {
+        "contradicting_evidence_ids": {
+          "items": {
+            "maxLength": 256,
+            "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+            "type": "string"
+          },
+          "title": "Contradicting Evidence Ids",
+          "type": "array"
+        },
+        "evidence_coverage": {
+          "$ref": "#/$defs/EvidenceCoverage"
+        },
+        "family": {
+          "$ref": "#/$defs/IncidentFamily"
+        },
+        "hypothesis_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+          "title": "Hypothesis Id",
+          "type": "string"
+        },
+        "missing_evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing Evidence",
+          "type": "array"
+        },
+        "next_check": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Check"
+        },
+        "rank": {
+          "maximum": 3,
+          "minimum": 1,
+          "title": "Rank",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "statement": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Statement",
+          "type": "string"
+        },
+        "supporting_evidence_ids": {
+          "items": {
+            "maxLength": 256,
+            "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+            "type": "string"
+          },
+          "title": "Supporting Evidence Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "hypothesis_id",
+        "family",
+        "rank",
+        "evidence_coverage",
+        "statement",
+        "supporting_evidence_ids",
+        "contradicting_evidence_ids",
+        "missing_evidence"
+      ],
+      "title": "Hypothesis",
+      "type": "object"
+    },
+    "IncidentFamily": {
+      "description": "Frozen diagnosis families visible to the agents.",
+      "enum": [
+        "healthy",
+        "capacity_queueing",
+        "backend_slowdown",
+        "backend_error",
+        "workload_shape_change",
+        "replica_or_deployment_regression",
+        "unknown"
+      ],
+      "title": "IncidentFamily",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Normalized Investigator output; hidden reasoning is intentionally absent.",
+  "properties": {
+    "cited_evidence_ids": {
+      "items": {
+        "maxLength": 256,
+        "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+        "type": "string"
+      },
+      "title": "Cited Evidence Ids",
+      "type": "array"
+    },
+    "completed_at": {
+      "format": "date-time",
+      "title": "Completed At",
+      "type": "string"
+    },
+    "disposition": {
+      "$ref": "#/$defs/Disposition"
+    },
+    "hypotheses": {
+      "items": {
+        "$ref": "#/$defs/Hypothesis"
+      },
+      "maxItems": 3,
+      "title": "Hypotheses",
+      "type": "array"
+    },
+    "incident_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "investigation_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Investigation Id",
+      "type": "string"
+    },
+    "leading_hypothesis_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Leading Hypothesis Id"
+    },
+    "limitations": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "proposed_action": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ActionPlanV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "summary": {
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "investigation_id",
+    "incident_id",
+    "completed_at",
+    "disposition",
+    "summary",
+    "hypotheses",
+    "cited_evidence_ids"
+  ],
+  "title": "InvestigationResultV1",
+  "type": "object"
+}

@@ -1,0 +1,202 @@
+{
+  "$defs": {
+    "ComparisonOperator": {
+      "description": "Deterministic comparison used by recovery criteria.",
+      "enum": [
+        "lt",
+        "lte",
+        "gt",
+        "gte",
+        "eq"
+      ],
+      "title": "ComparisonOperator",
+      "type": "string"
+    },
+    "RecoveryCriterion": {
+      "additionalProperties": false,
+      "description": "One measured recovery condition.",
+      "properties": {
+        "evidence_ids": {
+          "items": {
+            "maxLength": 256,
+            "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "metric": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_]+$",
+          "title": "Metric",
+          "type": "string"
+        },
+        "observed_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Observed Value"
+        },
+        "operator": {
+          "$ref": "#/$defs/ComparisonOperator"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "threshold": {
+          "title": "Threshold",
+          "type": "number"
+        },
+        "unit": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "metric",
+        "operator",
+        "threshold",
+        "observed_value",
+        "unit",
+        "passed",
+        "evidence_ids"
+      ],
+      "title": "RecoveryCriterion",
+      "type": "object"
+    },
+    "RecoveryState": {
+      "description": "Whether recovery was measured, failed, or not attempted.",
+      "enum": [
+        "verified",
+        "not_verified",
+        "not_attempted"
+      ],
+      "title": "RecoveryState",
+      "type": "string"
+    },
+    "TimeWindow": {
+      "additionalProperties": false,
+      "description": "Half-open UTC interval: start inclusive, end exclusive.",
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "TimeWindow",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Measured outcome after a simulator action or explicit non-attempt.",
+  "properties": {
+    "action_plan_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Action Plan Id"
+    },
+    "checked_at": {
+      "format": "date-time",
+      "title": "Checked At",
+      "type": "string"
+    },
+    "criteria": {
+      "items": {
+        "$ref": "#/$defs/RecoveryCriterion"
+      },
+      "title": "Criteria",
+      "type": "array"
+    },
+    "evidence_ids": {
+      "items": {
+        "maxLength": 256,
+        "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+        "type": "string"
+      },
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "incident_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "state": {
+      "$ref": "#/$defs/RecoveryState"
+    },
+    "summary": {
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "window": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TimeWindow"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "incident_id",
+    "action_plan_id",
+    "checked_at",
+    "window",
+    "state",
+    "criteria",
+    "evidence_ids",
+    "summary"
+  ],
+  "title": "RecoveryResultV1",
+  "type": "object"
+}

@@ -1,0 +1,58 @@
+{
+  "$defs": {
+    "DataOrigin": {
+      "description": "Provenance categories visible to operators and evaluators.",
+      "enum": [
+        "synthetic_replay"
+      ],
+      "title": "DataOrigin",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Immutable reference to one normalized item of observed evidence.",
+  "properties": {
+    "evidence_id": {
+      "maxLength": 256,
+      "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+      "title": "Evidence Id",
+      "type": "string"
+    },
+    "incident_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "origin": {
+      "$ref": "#/$defs/DataOrigin"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-z0-9_]+$",
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "evidence_id",
+    "incident_id",
+    "origin",
+    "source",
+    "observed_at"
+  ],
+  "title": "EvidenceRef",
+  "type": "object"
+}

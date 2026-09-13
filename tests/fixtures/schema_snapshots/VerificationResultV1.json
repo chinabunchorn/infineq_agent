@@ -1,0 +1,135 @@
+{
+  "$defs": {
+    "ClaimCheck": {
+      "additionalProperties": false,
+      "description": "Whether cited observed evidence supports one auditable claim.",
+      "properties": {
+        "claim_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "maxLength": 256,
+            "pattern": "^ev:[a-z0-9-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-z0-9_-]+:[a-f0-9]{8}$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "note": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Note",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supported": {
+          "title": "Supported",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "claim_id",
+        "evidence_ids",
+        "supported",
+        "note"
+      ],
+      "title": "ClaimCheck",
+      "type": "object"
+    },
+    "VerificationStatus": {
+      "description": "Verifier decision over an investigation result.",
+      "enum": [
+        "verified",
+        "revision_required",
+        "blocked"
+      ],
+      "title": "VerificationStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Verifier result with explicit failed checks and correction requests.",
+  "properties": {
+    "checked_at": {
+      "format": "date-time",
+      "title": "Checked At",
+      "type": "string"
+    },
+    "claim_checks": {
+      "items": {
+        "$ref": "#/$defs/ClaimCheck"
+      },
+      "title": "Claim Checks",
+      "type": "array"
+    },
+    "correction_requests": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Correction Requests",
+      "type": "array"
+    },
+    "incident_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "investigation_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Investigation Id",
+      "type": "string"
+    },
+    "issues": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "policy_ref": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Policy Ref",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/VerificationStatus"
+    },
+    "verification_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$",
+      "title": "Verification Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "verification_id",
+    "incident_id",
+    "investigation_id",
+    "checked_at",
+    "status",
+    "claim_checks",
+    "issues",
+    "correction_requests",
+    "policy_ref"
+  ],
+  "title": "VerificationResultV1",
+  "type": "object"
+}
