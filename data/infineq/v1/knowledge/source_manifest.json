@@ -1,0 +1,1 @@
+{"corpus_version":"v1","design_version":"1.0","notes":["No production telemetry or customer prompts are included.","Queue timings are simulator parameters, not hardware measurements."],"retrieval_date":"2026-09-13","schema_version":"1.0","source_id":"infineq-design-freeze-v1","source_type":"synthetic_replay","source_url":"local-design-freeze-v1"}

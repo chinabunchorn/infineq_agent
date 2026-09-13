@@ -186,11 +186,20 @@ State prominently:
 
 ## Phase 2 exit gate
 
-- [ ] 24 episodes exist with 8/16 split.
-- [ ] Same seed/config regenerates identical checksums.
-- [ ] Oracle isolation tests pass.
-- [ ] Canonical queue and rejection paths satisfy invariants.
-- [ ] All eight scenario templates have independent evidence patterns.
-- [ ] Dataset README clearly labels simulation limits.
-- [ ] `unset PYTHONPATH && uv run pytest tests/unit/simulator tests/unit/evidence tests/integration/test_canonical_episode.py tests/safety/test_oracle_isolation.py -q` passes.
-- [ ] Local phase commit created; nothing pushed.
+- [x] 24 episodes exist with 8/16 split.
+- [x] Same seed/config regenerates identical checksums.
+- [x] Oracle isolation tests pass.
+- [x] Canonical queue and rejection paths satisfy invariants.
+- [x] All eight scenario templates have independent evidence patterns.
+- [x] Dataset README clearly labels simulation limits.
+- [x] `unset PYTHONPATH && uv run pytest tests/unit/simulator tests/unit/evidence tests/integration/test_canonical_episode.py tests/safety/test_oracle_isolation.py -q` passes.
+- [x] Local phase commit created; nothing pushed.
+
+## Verified gate evidence
+
+- Corpus command: `unset PYTHONPATH && uv run python scripts/generate_corpus.py --version v1 --verify-reproducible` returned `episode_count=24`, `development_count=8`, `held_out_count=16`, and `reproducible=true`.
+- The persisted observed-tree SHA-256 is `f5790609ca5953bc7f0792d65d10c73faf9abf6cbc7cdda2e90594567311763f`; an independent audit matched it and found 24 observed directories, 24 hidden-oracle files, and no forbidden oracle/fault-label strings under `observed/`.
+- Exact Phase 2 gate: 46 passed.
+- Full quality gates: Ruff check passed; Ruff format check passed (64 files); mypy passed (25 source files); full pytest passed (119 tests) with 93.46% coverage; `uv lock --check` exited successfully.
+- Canonical verification measured one-replica capacity `2.319055680526889` requests/s and two-replica capacity `4.638111361053778`; approved scale-out produced `criteria_met=true`, p95 TTFT `308.455 ms`, queue checks `(0, 0, 0)`, and 2 ready replicas; rejected scale-out produced `criteria_met=false` and 1 ready replica.
+- Independent reviewer subagent returned `passed=true` with empty blocking security and logic findings. The final local commit is the only delivery; nothing was pushed.
