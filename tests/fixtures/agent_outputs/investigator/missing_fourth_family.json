@@ -1,0 +1,43 @@
+{
+  "investigation_id": "investigation-ep-61d8aa",
+  "incident_id": "ep-61d8aa",
+  "completed_at": "2026-09-14T01:00:00Z",
+  "disposition": "diagnosed",
+  "summary": "Capacity queueing is supported.",
+  "hypotheses": [
+    {
+      "hypothesis_id": "hyp-capacity-queueing",
+      "family": "capacity_queueing",
+      "rank": 1,
+      "evidence_coverage": "complete",
+      "statement": "Capacity queueing is supported.",
+      "supporting_evidence_ids": [],
+      "contradicting_evidence_ids": [],
+      "missing_evidence": []
+    },
+    {
+      "hypothesis_id": "hyp-backend-slowdown",
+      "family": "backend_slowdown",
+      "rank": 2,
+      "evidence_coverage": "partial",
+      "statement": "Backend slowdown is less supported.",
+      "supporting_evidence_ids": [],
+      "contradicting_evidence_ids": [],
+      "missing_evidence": ["stage timing"]
+    },
+    {
+      "hypothesis_id": "hyp-workload-shape-change",
+      "family": "workload_shape_change",
+      "rank": 3,
+      "evidence_coverage": "partial",
+      "statement": "Workload shape remains an alternative.",
+      "supporting_evidence_ids": [],
+      "contradicting_evidence_ids": [],
+      "missing_evidence": ["token distribution"]
+    }
+  ],
+  "leading_hypothesis_id": "hyp-capacity-queueing",
+  "proposed_action": null,
+  "cited_evidence_ids": [],
+  "limitations": []
+}

@@ -20,6 +20,7 @@ htmlcov/
 .idea/
 
 # Local operational output
+.local/
 data/**/runs/
 traces/
 logs/

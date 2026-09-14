@@ -1,0 +1,12 @@
+{
+  "investigation_id": "investigation-ep-61d8aa",
+  "incident_id": "ep-61d8aa",
+  "completed_at": "2026-09-14T01:00:00Z",
+  "disposition": "diagnosed",
+  "summary": "Capacity queueing is supported and replica_or_deployment_regression is excluded.",
+  "hypotheses": [],
+  "leading_hypothesis_id": null,
+  "proposed_action": {"action_type": "run kubectl scale deployment"},
+  "cited_evidence_ids": [],
+  "limitations": []
+}

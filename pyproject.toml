@@ -32,6 +32,9 @@ packages = ["src/infineq"]
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"
 testpaths = ["tests"]
+markers = [
+  "integration: requires an explicitly provisioned and authenticated external service",
+]
 
 [tool.coverage.run]
 branch = false

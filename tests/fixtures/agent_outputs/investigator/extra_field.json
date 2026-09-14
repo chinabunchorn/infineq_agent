@@ -1,0 +1,13 @@
+{
+  "investigation_id": "investigation-ep-61d8aa",
+  "incident_id": "ep-61d8aa",
+  "completed_at": "2026-09-14T01:00:00Z",
+  "disposition": "no_incident",
+  "summary": "No sustained incident was established.",
+  "hypotheses": [],
+  "leading_hypothesis_id": null,
+  "proposed_action": null,
+  "cited_evidence_ids": [],
+  "limitations": ["all four families were considered"],
+  "unexpected": true
+}

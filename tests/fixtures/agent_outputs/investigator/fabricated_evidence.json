@@ -1,0 +1,33 @@
+{
+  "investigation_id": "investigation-ep-61d8aa",
+  "incident_id": "ep-61d8aa",
+  "completed_at": "2026-09-14T01:00:00Z",
+  "disposition": "diagnosed",
+  "summary": "Capacity queueing is supported.",
+  "hypotheses": [
+    {
+      "hypothesis_id": "hyp-capacity-queueing",
+      "family": "capacity_queueing",
+      "rank": 1,
+      "evidence_coverage": "complete",
+      "statement": "Capacity queueing is supported.",
+      "supporting_evidence_ids": ["ev:ep-61d8aa:service_metrics:60-75:ttft:p95:deadbeef"],
+      "contradicting_evidence_ids": [],
+      "missing_evidence": []
+    },
+    {
+      "hypothesis_id": "hyp-backend-slowdown",
+      "family": "backend_slowdown",
+      "rank": 2,
+      "evidence_coverage": "partial",
+      "statement": "Backend slowdown is less supported.",
+      "supporting_evidence_ids": [],
+      "contradicting_evidence_ids": [],
+      "missing_evidence": ["stage timing"]
+    }
+  ],
+  "leading_hypothesis_id": "hyp-capacity-queueing",
+  "proposed_action": null,
+  "cited_evidence_ids": ["ev:ep-61d8aa:service_metrics:60-75:ttft:p95:deadbeef"],
+  "limitations": ["replica_or_deployment_regression was not compared"]
+}

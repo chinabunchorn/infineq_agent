@@ -2,6 +2,7 @@
 
 from infineq.foundry.client import (
     AzureFoundryModelClient,
+    AzureFoundryResponsesClient,
     ModelResponder,
     ModelSmokeResult,
     RawModelResponse,
@@ -10,6 +11,7 @@ from infineq.foundry.client import (
 
 __all__ = [
     "AzureFoundryModelClient",
+    "AzureFoundryResponsesClient",
     "ModelResponder",
     "ModelSmokeResult",
     "RawModelResponse",

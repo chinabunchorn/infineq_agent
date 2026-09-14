@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Protocol
+from typing import Any, Protocol, cast
 
 from azure.ai.projects import AIProjectClient
 from azure.core.credentials import TokenCredential
@@ -14,6 +14,12 @@ from openai import OpenAI
 
 from infineq.config import FoundrySettings
 from infineq.errors import ToolTransportError
+from infineq.foundry.protocols import (
+    FoundryResponse,
+    FunctionCall,
+    FunctionToolOutput,
+    ResponseUsage,
+)
 
 _SMOKE_PROMPT = "Return exactly: INFOUNDRY_READY"
 _SMOKE_EXPECTED = "INFOUNDRY_READY"
@@ -106,6 +112,121 @@ class AzureFoundryModelClient:
 
     def __exit__(self, *_exc_info: object) -> None:
         self.close()
+
+
+def _value(item: object, name: str, default: object = None) -> object:
+    if isinstance(item, dict):
+        return item.get(name, default)
+    return getattr(item, name, default)
+
+
+class AzureFoundryResponsesClient:
+    """Adapt the Foundry project OpenAI Responses client to the local protocol."""
+
+    def __init__(
+        self,
+        project_client: AIProjectClient | object,
+        *,
+        agent_name: str,
+        agent_version: str,
+    ) -> None:
+        self._openai: Any = cast(Any, project_client).get_openai_client()
+        self._agent_name = agent_name
+        self._agent_version = agent_version
+
+    def create_response(
+        self,
+        *,
+        input: str | Sequence[FunctionToolOutput],
+        previous_response_id: str | None,
+        conversation_id: str | None,
+        allow_tools: bool,
+        timeout_seconds: float,
+    ) -> FoundryResponse:
+        """Create one agent-referenced response and normalize function calls."""
+
+        if isinstance(input, str):
+            sdk_input: object = input
+        else:
+            sdk_input = [
+                {
+                    "type": "function_call_output",
+                    "call_id": item.call_id,
+                    "output": item.output,
+                }
+                for item in input
+            ]
+        request: dict[str, object] = {
+            "input": sdk_input,
+            "extra_body": {
+                "agent_reference": {
+                    "name": self._agent_name,
+                    "version": self._agent_version,
+                    "type": "agent_reference",
+                }
+            },
+            "timeout": timeout_seconds,
+        }
+        if conversation_id is not None:
+            request["conversation"] = conversation_id
+        if previous_response_id is not None:
+            request["previous_response_id"] = previous_response_id
+        if not allow_tools:
+            request["tool_choice"] = "none"
+        try:
+            response = self._openai.responses.create(**request)
+        except Exception as exc:
+            raise ToolTransportError("Foundry Responses request failed") from exc
+
+        calls: list[FunctionCall] = []
+        output_items = _value(response, "output", ())
+        if isinstance(output_items, Sequence) and not isinstance(output_items, (str, bytes)):
+            for item in output_items:
+                if _value(item, "type") != "function_call":
+                    continue
+                call_id = _value(item, "call_id")
+                name = _value(item, "name")
+                arguments = _value(item, "arguments")
+                if not all(isinstance(value, str) for value in (call_id, name, arguments)):
+                    raise ToolTransportError("Foundry returned an invalid function call")
+                calls.append(
+                    FunctionCall(
+                        call_id=cast(str, call_id),
+                        name=cast(str, name),
+                        arguments=cast(str, arguments),
+                    )
+                )
+
+        usage_value = _value(response, "usage")
+        usage = None
+        if usage_value is not None:
+            counters = {
+                name: _value(usage_value, name)
+                for name in ("input_tokens", "output_tokens", "total_tokens")
+            }
+            usage = ResponseUsage(
+                input_tokens=counters["input_tokens"]
+                if isinstance(counters["input_tokens"], int)
+                else None,
+                output_tokens=counters["output_tokens"]
+                if isinstance(counters["output_tokens"], int)
+                else None,
+                total_tokens=counters["total_tokens"]
+                if isinstance(counters["total_tokens"], int)
+                else None,
+            )
+        response_id = _value(response, "id")
+        if not isinstance(response_id, str) or not response_id:
+            raise ToolTransportError("Foundry response identifier was empty")
+        output_text = _value(response, "output_text", "")
+        if not isinstance(output_text, str):
+            output_text = ""
+        return FoundryResponse(
+            response_id=response_id,
+            function_calls=tuple(calls),
+            output_text=output_text,
+            usage=usage,
+        )
 
 
 def run_model_smoke(
