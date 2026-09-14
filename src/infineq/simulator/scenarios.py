@@ -133,6 +133,13 @@ _VARIANT_PARAMS: dict[ScenarioVariant, tuple[float, float, float]] = {
     ScenarioVariant.C: (54.0, 114.0, 0.9),
 }
 
+_INCIDENT_STEADY_RATES: dict[ScenarioFamily, float] = {
+    ScenarioFamily.BACKEND_SLOWDOWN: 1.70,
+    ScenarioFamily.BACKEND_ERRORS: 1.35,
+    ScenarioFamily.PROMPT_LENGTH_SHIFT: 1.35,
+    ScenarioFamily.REPLICA_RESTART: 1.35,
+}
+
 
 def _base_config(
     *,
@@ -194,6 +201,12 @@ def _case_for(
     arrival_window: tuple[float, float] | None = None
     mechanism = "stable_replay"
 
+    if family in _INCIDENT_STEADY_RATES:
+        # Keep non-queue incident workloads steady while meeting the frozen
+        # detector's per-window request budget.
+        steady_rate = _INCIDENT_STEADY_RATES[family]
+        baseline_rate = degradation_rate = recovery_rate = steady_rate
+
     if family is ScenarioFamily.BENIGN_BURST:
         degradation_rate = 1.65 + (intensity - 1.0) * 0.15
         arrival_window = (onset, min(end, 120.0))
@@ -211,7 +224,7 @@ def _case_for(
         timeout_profile = (NumericWindow(onset, min(end, 120.0), 0.01),)
         mechanism = "normalized_backend_outcomes_degrade"
     elif family is ScenarioFamily.PROMPT_LENGTH_SHIFT:
-        input_profile = (NumericWindow(onset, min(end, 120.0), 1.75 + (intensity - 1.0) * 0.25),)
+        input_profile = (NumericWindow(onset, min(end, 120.0), 4.50 + (intensity - 1.0) * 0.25),)
         mechanism = "input_token_distribution_shifts"
     elif family is ScenarioFamily.REPLICA_RESTART:
         changes = (

@@ -156,11 +156,21 @@ Record tool name, validated arguments hash, agent role, start/end time, status, 
 
 ## Phase 3 exit gate
 
-- [ ] Detector emits no root-cause label.
-- [ ] Detector behavior matches every development oracle and records SLO lead time rather than assuming it.
-- [ ] All tools reject unrestricted paths/queries and return typed evidence.
-- [ ] Oracle root cannot be reached through any tool.
-- [ ] Runbook evidence preserves source/version.
-- [ ] Tool audit logs are redacted.
-- [ ] `unset PYTHONPATH && uv run pytest tests/unit/detection tests/unit/evidence tests/integration/test_detector_corpus.py tests/safety/test_path_policy.py tests/safety/test_tool_allowlist.py -q` passes.
-- [ ] Local phase commit created; nothing pushed.
+- [x] Detector emits no root-cause label.
+- [x] Detector behavior matches every development oracle and records SLO lead time rather than assuming it.
+- [x] All tools reject unrestricted paths/queries and return typed evidence.
+- [x] Oracle root cannot be reached through any tool.
+- [x] Runbook evidence preserves source/version.
+- [x] Tool audit logs are redacted.
+- [x] `unset PYTHONPATH && uv run pytest tests/unit/detection tests/unit/evidence tests/integration/test_detector_corpus.py tests/safety/test_path_policy.py tests/safety/test_tool_allowlist.py -q` passes.
+- [x] Local phase commit created after the gate; remote push occurred only after explicit user approval.
+
+## Verified Phase 3 gate evidence
+
+- The targeted audit rerun `uv run pytest tests/unit/evidence/test_audit.py` passed with 11 tests.
+- The exact Phase 3 gate passed with 104 tests. The exact Phase 2 compatibility gate passed with 77 tests.
+- Full pytest passed with 221 tests and 91.39% total coverage (the project threshold is 90%). Ruff check passed; Ruff format check passed with 86 files already formatted; mypy passed with 36 source files; `uv lock --check` passed; and `git diff --check` passed.
+- Corpus regeneration `unset PYTHONPATH && uv run python scripts/generate_corpus.py --version v1 --verify-reproducible` returned 24 episodes, 8 development, 16 held-out, `reproducible=true`, and observed-tree SHA-256 `7cb9d1195bcd508874ff08722b63a552eee7ebe6619500e86934fff5caf847fd`. The checked-in five-record runbook catalog remains present after regeneration.
+- The eight development oracle behaviors matched exactly: `ep-a91e7c` no_sustained_incident; `ep-f02b4d` no_sustained_incident; `ep-61d8aa` warning at detector 75s with primary TTFT, SLO crossing 80s, lead 5s; `ep-c43f91` warning at 80s with primary TTFT, SLO crossing 105s, lead 25s; `ep-0e7ab3` warning at 70s with primary error rate; `ep-d8c214` warning at 70s with primary TTFT; `ep-4b6fa0` warning at 70s with primary TTFT and SLO crossing 65s, lead -5s; and `ep-e35192` abstain. Every triggered primary was only TTFT or error rate, and required oracle evidence was present without exposing oracle fields.
+- Tool evidence includes allow-list/path safety tests, cross-episode evidence rejection, dry-run-only action planning, five immutable runbook chunks with source URLs/version/date, and redacted audit records. No remote write or push was performed during these checks.
+- The Sol-high orchestrator independently inspected the staged detector, evidence-store, tool, runbook, audit, simulator-compatibility, and test changes. Its added-line/AST security scan found zero hardcoded-secret, shell-execution, `eval`/`exec`, pickle, SQL-interpolation, or unsafe-call findings; its direct detector replay matched all eight development oracles and confirmed that only TTFT or error rate can be a primary trigger. The final exit-gate verdict was pass.

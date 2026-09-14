@@ -74,3 +74,14 @@ def test_generator_removes_stale_generated_knowledge(tmp_path) -> None:
     generate_corpus(root)
 
     assert not stale.exists()
+
+
+def test_generator_preserves_the_checked_in_runbook_catalog(tmp_path) -> None:
+    root = tmp_path / "v1"
+    runbook = root / "knowledge" / "runbook_chunks.jsonl"
+    runbook.parent.mkdir(parents=True)
+    runbook.write_text("curated", encoding="utf-8")
+
+    generate_corpus(root)
+
+    assert runbook.read_text(encoding="utf-8") == "curated"

@@ -55,11 +55,21 @@ class GenerationSummary:
 
 
 def _reset_generated_roots(output_root: Path) -> None:
-    for name in ("observed", "hidden_oracles", "knowledge"):
+    for name in ("observed", "hidden_oracles"):
         target = output_root / name
         if target.exists():
             shutil.rmtree(target)
         target.mkdir(parents=True, exist_ok=True)
+    knowledge_root = output_root / "knowledge"
+    knowledge_root.mkdir(parents=True, exist_ok=True)
+    # Keep the checked-in curated catalog while removing generated knowledge.
+    for child in knowledge_root.iterdir():
+        if child.name == "runbook_chunks.jsonl":
+            continue
+        if child.is_dir() and not child.is_symlink():
+            shutil.rmtree(child)
+        else:
+            child.unlink()
 
 
 def _write_static_files(output_root: Path) -> None:

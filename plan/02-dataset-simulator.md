@@ -203,3 +203,18 @@ State prominently:
 - Full quality gates: Ruff check passed; Ruff format check passed (64 files); mypy passed (25 source files); full pytest passed (119 tests) with 93.46% coverage; `uv lock --check` exited successfully.
 - Canonical verification measured one-replica capacity `2.319055680526889` requests/s and two-replica capacity `4.638111361053778`; approved scale-out produced `criteria_met=true`, p95 TTFT `308.455 ms`, queue checks `(0, 0, 0)`, and 2 ready replicas; rejected scale-out produced `criteria_met=false` and 1 ready replica.
 - Independent reviewer subagent returned `passed=true` with empty blocking security and logic findings. The final local commit is the only delivery; nothing was pushed.
+
+---
+
+## Phase 2 retrospective compatibility repair
+
+The initial Phase 2 gate evidence above predates the Phase 3 detector compatibility check. That check confirmed that the frozen detector counts only requests submitted in each trailing `[end-15,end)` window and requires at least 20 requests. Four development templates—backend slowdown, backend errors/timeouts, prompt-length shift, and replica restart/readiness loss—had a maximum of 19 requests in every evaluation window, so their warning oracles could not be realized even though their evidence patterns were otherwise valid.
+
+This retrospective repair changed only detector-independent scenario parameters in `src/infineq/simulator/scenarios.py`: backend slowdown now uses a steady `1.70 requests/second` across baseline, degradation, and recovery so its slower service time creates queueing without an arrival-rate change at onset; backend errors/timeouts, prompt-length shift, and replica restart/readiness loss retain the steady `1.35 requests/second` compatibility rate. Prompt-length shift now uses a `4.50x` input-token multiplier for variant A (with the existing intensity adjustment), which raises TTFT above the frozen primary threshold without an arrival-rate change. The detector threshold, rolling-window semantics, evidence-family semantics, oracle expectations, and held-out split were not changed. The corpus was regenerated with the existing reproducibility check.
+
+Post-repair verification:
+
+- `unset PYTHONPATH && uv run python scripts/generate_corpus.py --version v1 --verify-reproducible` returned `episode_count=24`, `development_count=8`, `held_out_count=16`, `reproducible=true`, and observed-tree SHA-256 `7cb9d1195bcd508874ff08722b63a552eee7ebe6619500e86934fff5caf847fd`.
+- The exact Phase 2 gate passed with 77 tests after the compatibility repair. The curated runbook catalog is preserved when corpus regeneration removes stale generated knowledge.
+- The exact Phase 3 gate passed with 104 tests, including the per-window request-budget/evidence-pattern regression and the consecutive-TTFT primary-signal regression.
+- Final quality gates passed: full pytest passed with 221 tests and 91.39% coverage; Ruff check passed; Ruff format check passed (86 files); mypy passed (36 source files); `uv lock --check` passed; and `git diff --check` passed.
