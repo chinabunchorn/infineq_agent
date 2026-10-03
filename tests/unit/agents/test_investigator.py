@@ -13,6 +13,13 @@ from infineq.evidence.tools import InvestigatorTools
 from infineq.foundry.protocols import FoundryResponse, FunctionCall
 from infineq.schemas.investigation import Disposition
 from infineq.testing.foundry import FakeFoundryClient, InjectedOutputExecutor, transport_failure
+from infineq.workflow.corrections import (
+    CorrectionCategory,
+    CorrectionItem,
+    CorrectionPacketV1,
+    LookupAllowanceV1,
+    SignalWindowLookupV1,
+)
 
 PROJECT_ROOT = Path(__file__).parents[3]
 INCIDENT_ID = "ep-61d8aa"
@@ -140,7 +147,121 @@ def test_canonical_queue_investigation_is_grounded_and_schema_valid() -> None:
     assert all(trace.status == "success" for trace in investigator.last_run.traces)
 
 
-def test_healthy_or_no_incident_output_has_no_action_or_cause() -> None:
+def test_correction_entrypoint_reuses_authorized_evidence_without_provider_kwarg() -> None:
+    packet, tools = packet_and_tools()
+    client = FakeFoundryClient(
+        [
+            FoundryResponse(
+                response_id="resp-correction-initial-tool",
+                function_calls=(
+                    FunctionCall(
+                        "call-packet",
+                        "get_incident_packet",
+                        json.dumps({"incident_id": INCIDENT_ID}),
+                    ),
+                ),
+            ),
+            FoundryResponse(
+                response_id="resp-correction-initial-final",
+                output_text=json.dumps(final_payload(packet)),
+            ),
+            FoundryResponse(
+                response_id="resp-correction-final",
+                output_text=json.dumps(final_payload(packet, disposition="indeterminate")),
+            ),
+        ]
+    )
+    investigator = Investigator(client=client, tools=tools)
+
+    initial = investigator.investigate(packet)
+    correction = CorrectionPacketV1(
+        correction_id=f"correction-{packet.incident_id}-r1",
+        incident_id=packet.incident_id,
+        investigation_id=initial.investigation_id,
+        verification_id=f"verification-{packet.incident_id}",
+        corrections=(CorrectionItem(category=CorrectionCategory.MISSING_ALTERNATIVE),),
+        reuse_evidence_ids=initial.cited_evidence_ids,
+        remaining_investigator_tool_calls=6,
+    )
+
+    corrected = investigator.investigate_with_correction(packet, correction)
+
+    assert corrected.disposition is Disposition.INDETERMINATE
+    assert len(client.calls) == 3
+    correction_input = client.calls[2]["input"]
+    assert isinstance(correction_input, str)
+    assert correction.correction_id in correction_input
+    assert "correction_packet" in correction_input
+
+
+def test_correction_with_exact_lookup_allowance_uses_one_read_call() -> None:
+    packet, tools = packet_and_tools()
+    client = FakeFoundryClient(
+        [
+            FoundryResponse(
+                response_id="resp-allowed-initial-tool",
+                function_calls=(
+                    FunctionCall(
+                        "call-packet",
+                        "get_incident_packet",
+                        json.dumps({"incident_id": INCIDENT_ID}),
+                    ),
+                ),
+            ),
+            FoundryResponse(
+                response_id="resp-allowed-initial-final",
+                output_text=json.dumps(final_payload(packet)),
+            ),
+            FoundryResponse(
+                response_id="resp-allowed-correction-tool",
+                function_calls=(
+                    FunctionCall(
+                        "call-allowed-window",
+                        "get_signal_window",
+                        json.dumps(
+                            {
+                                "incident_id": INCIDENT_ID,
+                                "signal_enum": "ttft",
+                                "window_enum": "observation",
+                            }
+                        ),
+                    ),
+                ),
+            ),
+            FoundryResponse(
+                response_id="resp-allowed-correction-final",
+                output_text=json.dumps(final_payload(packet, disposition="indeterminate")),
+            ),
+        ]
+    )
+    investigator = Investigator(client=client, tools=tools)
+    initial = investigator.investigate(packet)
+    correction = CorrectionPacketV1(
+        correction_id=f"correction-{packet.incident_id}-r1",
+        incident_id=packet.incident_id,
+        investigation_id=initial.investigation_id,
+        verification_id=f"verification-{packet.incident_id}",
+        corrections=(
+            CorrectionItem(
+                category=CorrectionCategory.MISSING_REQUIRED_FIELD,
+                missing_field="evidence_citations",
+            ),
+        ),
+        reuse_evidence_ids=initial.cited_evidence_ids,
+        lookup_allowance=LookupAllowanceV1(
+            incident_id=packet.incident_id,
+            explicitly_identified_by_verifier=True,
+            lookup=SignalWindowLookupV1(signal="ttft", window="observation"),
+        ),
+        remaining_investigator_tool_calls=1,
+    )
+
+    corrected = investigator.investigate_with_correction(packet, correction)
+
+    assert corrected.disposition is Disposition.INDETERMINATE
+    assert investigator.last_run.successful_tool_calls == 1
+    assert investigator.last_run.forbidden_tool_calls == 0
+
     packet, _tools = packet_and_tools()
     client = FakeFoundryClient(
         [
@@ -285,6 +406,8 @@ def test_format_repair_is_one_turn_and_disallows_tools() -> None:
     assert result.disposition is Disposition.INDETERMINATE
     assert client.calls[1]["allow_tools"] is False
     assert client.calls[1]["previous_response_id"] == "resp-format-1"
+    assert "runbook chunk IDs" in client.calls[1]["input"]
+    assert "returned evidence IDs" in client.calls[1]["input"]
 
 
 def test_forbidden_tool_request_is_never_dispatched() -> None:

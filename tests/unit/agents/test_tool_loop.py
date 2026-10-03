@@ -84,6 +84,33 @@ def test_loop_processes_all_calls_and_preserves_response_linkage() -> None:
     assert result.response_ids == ("resp-1", "resp-2")
 
 
+def test_truncated_tool_output_is_not_counted_as_evidence_seen_by_model() -> None:
+    evidence_id = "ev:ep-61d8aa:s:a:b:c:deadbeef"
+    client = FakeClient(
+        [
+            response(
+                "resp-evidence",
+                calls=(FunctionCall("call-evidence", "get_evidence", "{}"),),
+            ),
+            response("resp-final", text="done"),
+        ]
+    )
+    executor = FakeExecutor({"get_evidence": {"evidence_id": evidence_id, "value": "x" * 500}})
+
+    result = run_bounded_tool_loop(
+        client,
+        initial_input="verify",
+        executor=executor,
+        config=ToolLoopConfig(max_tool_output_chars=256),
+    )
+
+    assert result.returned_evidence_ids == frozenset()
+    assert result.traces[0].returned_evidence_ids == ()
+    assert json.loads(client.calls[1]["input"][0].output) == {
+        "untrusted_data": "[tool output truncated]"
+    }
+
+
 def test_loop_rejects_a_response_that_would_overflow_the_total_budget_before_dispatch() -> None:
     client = FakeClient(
         [

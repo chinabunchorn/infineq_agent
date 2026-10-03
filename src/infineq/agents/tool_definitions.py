@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Final
 
@@ -59,6 +62,16 @@ class InvestigatorToolDefinition:
             parameters=self.parameters,
             strict=self.strict,
         )
+
+    def to_hash_entry(self) -> dict[str, Any]:
+        """Return the provider-relevant fields used for the tool-schema hash."""
+
+        return {
+            "name": self.name,
+            "description": self.description,
+            "parameters": deepcopy(self.parameters),
+            "strict": self.strict,
+        }
 
 
 def _parameters(properties: dict[str, Any]) -> dict[str, Any]:
@@ -159,10 +172,27 @@ def get_investigator_tool_definitions() -> tuple[InvestigatorToolDefinition, ...
     return INVESTIGATOR_TOOL_DEFINITIONS
 
 
+def investigator_tool_schema_sha256() -> str:
+    """Hash the ordered Investigator function name, schema, and strict flag."""
+
+    encoded = json.dumps(
+        tuple(definition.to_hash_entry() for definition in INVESTIGATOR_TOOL_DEFINITIONS),
+        ensure_ascii=True,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+INVESTIGATOR_TOOL_SCHEMA_SHA256: Final[str] = investigator_tool_schema_sha256()
+
+
 __all__ = [
     "INVESTIGATOR_TOOL_DEFINITIONS",
     "INVESTIGATOR_TOOL_NAMES",
+    "INVESTIGATOR_TOOL_SCHEMA_SHA256",
     "TOOL_DEFINITIONS",
     "InvestigatorToolDefinition",
     "get_investigator_tool_definitions",
+    "investigator_tool_schema_sha256",
 ]

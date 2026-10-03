@@ -28,6 +28,17 @@ _INSTRUCTION_TEXT = re.compile(
     r"(?i)(ignore\s+(?:all\s+)?previous|system\s+message|developer\s+message|assistant\s+instruction|"
     r"reveal\s+(?:the\s+)?(?:hidden|private)\s+reasoning)"
 )
+_DEFAULT_ALLOWED_TOOLS = frozenset(
+    {
+        "get_incident_packet",
+        "get_signal_window",
+        "get_request_samples",
+        "get_deployment_snapshot",
+        "search_runbook",
+        "get_evidence",
+        "prepare_action_plan",
+    }
+)
 
 
 class ToolLoopStatus(StrEnum):
@@ -53,10 +64,11 @@ class ToolLoopConfig:
     timeout_seconds: float = 60.0
     conversation_id: str | None = None
     max_tool_output_chars: int = 20_000
+    allowed_tools: frozenset[str] | None = None
 
     def __post_init__(self) -> None:
-        if self.max_successful_tool_calls < 1:
-            raise ValueError("tool-call budget must be positive")
+        if self.max_successful_tool_calls < 0:
+            raise ValueError("tool-call budget must be non-negative")
         if self.timeout_seconds <= 0:
             raise ValueError("timeout must be positive")
         if self.max_tool_output_chars < 256:
@@ -140,7 +152,8 @@ def _serialize_tool_output(value: object, *, max_chars: int) -> tuple[str, froze
             for child in item:
                 visit(child)
 
-    visit(safe_value)
+    # Only count IDs actually sent to the model, not discarded by truncation.
+    visit(json.loads(serialized))
     return serialized, frozenset(evidence)
 
 
@@ -287,15 +300,11 @@ def run_bounded_tool_loop(  # noqa: UP047
                     evidence_ids=evidence_ids,
                 )
             outputs: list[FunctionToolOutput] = []
-            allowed_tools = {
-                "get_incident_packet",
-                "get_signal_window",
-                "get_request_samples",
-                "get_deployment_snapshot",
-                "search_runbook",
-                "get_evidence",
-                "prepare_action_plan",
-            }
+            allowed_tools = (
+                _DEFAULT_ALLOWED_TOOLS
+                if resolved_config.allowed_tools is None
+                else resolved_config.allowed_tools
+            )
             forbidden_calls = sum(call.name not in allowed_tools for call in calls)
             if forbidden_calls:
                 return _incomplete(

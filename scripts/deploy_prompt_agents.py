@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create or retrieve the pinned Infineq Investigator prompt-agent version."""
+"""Create or retrieve a pinned Infineq prompt-agent version."""
 
 from infineq.foundry.deployment_cli import main
 

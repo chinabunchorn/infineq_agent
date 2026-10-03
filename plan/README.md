@@ -10,6 +10,19 @@
 
 ---
 
+## Resumption status
+
+The agentathon has ended; do not treat the historic submission schedule as a current gate.
+Phases 0–4 have recorded completion evidence. Phase 5's **development exit gate passed**
+on the complete v11 run (eight episodes, 24 records, two-agent 4/8 versus 3/8 per
+baseline, canonical queue action card verified, zero actions executed). Saved v8/v9
+failed the corrected gate; v10 stopped after three episodes without an aggregate score.
+See [the Phase 5 evidence and limitations](05-verifier-workflow.md). Phase 6 has not
+started; it remains a separate approval/recovery UI phase. Phase 8
+now means reproducible **post-event hardening and documentation**, not a new submission.
+
+---
+
 ## Authority and scope
 
 The frozen design is:
